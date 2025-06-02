@@ -18,8 +18,8 @@ import (
 )
 
 func setSwaggerInfo() {
-	docs.SwaggerInfo.Title = "Gin Boilerplate Example"
-	docs.SwaggerInfo.Description = "Example boilerplate"
+	docs.SwaggerInfo.Title = "Laundry Tracking API"
+	docs.SwaggerInfo.Description = "Laundry Tracking API"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.BasePath = "/"
 	docs.SwaggerInfo.Schemes = []string{"https", "http"}
@@ -62,11 +62,14 @@ func main() {
 func runServer(cfg config.Config, route http.Handler) {
 	// The HTTP Server
 	server := &http.Server{
-		Addr:         fmt.Sprintf("%s:%s", cfg.Host.Address, cfg.Host.Port),
 		WriteTimeout: time.Second * time.Duration(cfg.Host.WriteTimeout),
 		ReadTimeout:  time.Second * time.Duration(cfg.Host.ReadTimeout),
 		IdleTimeout:  time.Second * time.Duration(cfg.Host.IdleTimeout),
 		Handler:      route,
+	}
+
+	if cfg.Host.Port != "" {
+		server.Addr = fmt.Sprintf("%s:%s", cfg.Host.Address, cfg.Host.Port)
 	}
 
 	// Run Server

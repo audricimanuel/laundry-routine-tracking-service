@@ -17,7 +17,4 @@ func ViperBind() {
 	viper.BindEnv("DB_PORT")
 	viper.BindEnv("SSL_MODE")
 	viper.BindEnv("TZ")
-
-	// Binding GCP Cred
-	viper.BindEnv("GOOGLE_APPLICATION_CREDENTIALS_BASE64")
 }

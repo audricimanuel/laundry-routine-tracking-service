@@ -5,24 +5,16 @@ import (
 	"fmt"
 	"gin-boilerplate/src/config"
 	"github.com/jmoiron/sqlx"
-	"go.mongodb.org/mongo-driver/mongo"
-	"gorm.io/gorm"
 )
 
 type (
 	DBCollection struct {
-		MongoDB        *mongo.Database
 		PostgresDBSqlx *sqlx.DB
-		PostgresDBGorm *gorm.DB
 	}
 )
 
 func NewDatabaseCollection(cfg config.Config) DBCollection {
 	ctx := context.Background()
-
-	// mongodb
-	mongoDBConfig := cfg.DataSource.MongoDBConfig
-	mongoDB := InitializeMongoDatabase(ctx, mongoDBConfig.ConnectionString, mongoDBConfig.DatabaseName)
 
 	// postgres
 	postgresDBConfig := cfg.DataSource.PostgresDBConfig
@@ -33,12 +25,8 @@ func NewDatabaseCollection(cfg config.Config) DBCollection {
 
 	// postgres with sqlx
 	postgresDBSqlx := InitializePostgresqlDatabaseSqlx(ctx, dsn)
-	// postgres with gorm
-	postgresDBGorm := InitializePostgresqlDatabaseGorm(ctx, dsn)
 
 	return DBCollection{
-		MongoDB:        mongoDB,
 		PostgresDBSqlx: postgresDBSqlx,
-		PostgresDBGorm: postgresDBGorm,
 	}
 }

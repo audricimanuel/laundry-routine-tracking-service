@@ -19,7 +19,6 @@ type (
 
 	DataSource struct {
 		PostgresDBConfig PostgresDBConfig `mapstructure:",squash"`
-		MongoDBConfig    MongoDBConfig    `mapstructure:",squash"`
 	}
 
 	PostgresDBConfig struct {
@@ -30,10 +29,5 @@ type (
 		Port     string `mapstructure:"POSTGRES_DB_PORT"`
 		SSLMode  string `mapstructure:"POSTGRES_SSL_MODE"`
 		Timezone string `mapstructure:"POSTGRES_TZ"`
-	}
-
-	MongoDBConfig struct {
-		ConnectionString string `mapstructure:"MONGODB_URL"`
-		DatabaseName     string `mapstructure:"MONGODB_DB_NAME"`
 	}
 )
