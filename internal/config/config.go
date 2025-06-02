@@ -5,6 +5,7 @@ type (
 		Env             string     `mapstructure:"ENV"`
 		SwaggerUsername string     `mapstructure:"SWAGGER_USERNAME"`
 		SwaggerPassword string     `mapstructure:"SWAGGER_PASSWORD"`
+		JWTSecret       string     `mapstructure:"JWT_SECRET"`
 		Host            Host       `mapstructure:",squash"`
 		DataSource      DataSource `mapstructure:",squash"`
 	}

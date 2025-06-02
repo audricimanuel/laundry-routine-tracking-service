@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"gin-boilerplate/docs"
-	"gin-boilerplate/src/config"
-	"gin-boilerplate/src/database"
-	"gin-boilerplate/src/internals/controller"
-	"gin-boilerplate/src/internals/repository"
-	"gin-boilerplate/src/internals/service"
-	httpServer "gin-boilerplate/src/server/http"
+	"github.com/audricimanuel/laundry-routine-tracking-service/docs"
+	"github.com/audricimanuel/laundry-routine-tracking-service/internal/config"
+	"github.com/audricimanuel/laundry-routine-tracking-service/internal/database"
+	authController "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/controller"
+	authRepository "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/repository"
+	authService "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/service"
+	httpServer "github.com/audricimanuel/laundry-routine-tracking-service/internal/server/http"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
@@ -34,15 +34,18 @@ func main() {
 
 	// initialize mongodb connection
 	databaseCollection := database.NewDatabaseCollection(cfg)
+	defer func() {
+		databaseCollection.PostgresDBSqlx.Close()
+	}()
 
 	// repositories
-	exampleRepo := repository.NewExampleRepository(databaseCollection)
+	authRepo := authRepository.NewAuthRepository(cfg, databaseCollection)
 
 	// services
-	exampleService := service.NewExampleService(exampleRepo)
+	authServ := authService.NewAuthService(cfg, authRepo)
 
 	// controllers
-	exampleController := controller.NewExampleController(exampleService)
+	authCtrl := authController.NewAuthController(authServ)
 
 	// set swagger info
 	setSwaggerInfo()
@@ -50,8 +53,8 @@ func main() {
 	// registering router
 	router := httpServer.RegisterRouter(
 		cfg,
-		exampleController,
 		// register controllers in here
+		authCtrl,
 	)
 
 	// running server

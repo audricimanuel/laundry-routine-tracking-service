@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
-	"gin-boilerplate/src/config"
+	"github.com/audricimanuel/laundry-routine-tracking-service/internal/config"
 	"github.com/jmoiron/sqlx"
 )
 

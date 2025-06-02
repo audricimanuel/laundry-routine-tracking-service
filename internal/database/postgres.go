@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"gin-boilerplate/src/tools"
+	"github.com/audricimanuel/laundry-routine-tracking-service/internal/tools"
 	"github.com/jmoiron/sqlx"
 )
 

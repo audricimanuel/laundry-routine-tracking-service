@@ -3,34 +3,17 @@ package utils
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"io"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-var (
-	LocServer *time.Location
-)
-
-func init() {
-	LocServer = MustLoadLocation(os.Getenv("HOST_LOCATION"))
-}
-
-// PUBLIC METHOD
-func MustLoadLocation(name string) *time.Location {
-	l, err := time.LoadLocation(name)
-	if err != nil {
-		panic(fmt.Sprintf("time util: could not load location %s: %s", name, err.Error()))
-	}
-	return l
-}
-
 func TimeNow() time.Time {
-	return time.Now().In(LocServer)
+	return time.Now()
 }
 
 func ConvertStrToInt(number string, defaultResult int) int {
@@ -91,4 +74,26 @@ func GenerateSlug(text string) string {
 	result := strings.ToLower(strings.TrimSpace(text))
 	result = strings.Replace(result, " ", "-", -1)
 	return result
+}
+
+func GenerateUUID() uuid.UUID {
+	return uuid.New()
+}
+
+func GenerateCleanUUID() string {
+	traceId := GenerateUUID()
+	cleanTraceId := strings.Replace(traceId.String(), "-", "", -1)
+	return cleanTraceId
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
+
+// CheckPasswordHash compares a plain-text password with a hashed password.
+// Returns true if they match, false otherwise.
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

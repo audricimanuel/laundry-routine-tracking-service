@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"gin-boilerplate/src/config"
+	"github.com/audricimanuel/laundry-routine-tracking-service/internal/config"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
