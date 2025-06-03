@@ -43,22 +43,18 @@ type (
 	}
 
 	UserClaims struct {
-		UserId     string `json:"user_id"`
-		Email      string `json:"email"`
-		Role       int    `json:"role"`
-		IsActive   bool   `json:"is_active"`
-		IsVerified bool   `json:"is_verified"`
+		UserId string `json:"user_id"`
+		Email  string `json:"email"`
+		Role   int    `json:"role"`
 		jwt.RegisteredClaims
 	}
 )
 
 func (u *UserInfoResponse) ToJWT() *jwt.Token {
 	claims := UserClaims{
-		UserId:     u.Id,
-		Email:      u.Email,
-		Role:       u.Role,
-		IsActive:   u.IsActive,
-		IsVerified: u.IsVerified,
+		UserId: u.Id,
+		Email:  u.Email,
+		Role:   u.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)), // Token expires in 24 hours
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -4,6 +4,7 @@ import (
 	"github.com/audricimanuel/errorutils"
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/model"
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/service"
+	"github.com/audricimanuel/laundry-routine-tracking-service/utils/constants"
 	"github.com/audricimanuel/laundry-routine-tracking-service/utils/httputils"
 	"github.com/gin-gonic/gin"
 )
@@ -59,10 +60,13 @@ func (a *AuthControllerImpl) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	if err := a.authService.SignUpUser(ctx, request); err != nil {
+	jwt, err := a.authService.SignUpUser(ctx, request)
+	if err != nil {
 		httputils.SetHttpResponse(ctx, nil, err, nil)
 		return
 	}
+
+	httputils.SetHttpResponse(ctx, map[string]interface{}{"token": jwt}, nil, nil)
 }
 
 func (a *AuthControllerImpl) ForgotPassword(ctx *gin.Context) {
@@ -71,6 +75,20 @@ func (a *AuthControllerImpl) ForgotPassword(ctx *gin.Context) {
 }
 
 func (a *AuthControllerImpl) VerifyEmail(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	userClaims, _ := ctx.Get(constants.USER_DATA)
+	userData := userClaims.(model.UserClaims)
+
+	var request model.UserVerifyEmailRequest
+
+	if err := errorutils.ValidatePayload(ctx.Request, &request); err != nil {
+		httputils.SetHttpResponse(ctx, nil, err, nil)
+		return
+	}
+
+	if err := a.authService.VerifyEmail(ctx, userData.UserId, request.Token); err != nil {
+		httputils.SetHttpResponse(ctx, nil, err, nil)
+		return
+	}
+
+	httputils.SetHttpResponse(ctx, "Verification success. Please login using your email.", nil, nil)
 }

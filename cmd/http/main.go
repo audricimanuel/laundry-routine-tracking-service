@@ -6,10 +6,12 @@ import (
 	"github.com/audricimanuel/laundry-routine-tracking-service/docs"
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/config"
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/database"
+	"github.com/audricimanuel/laundry-routine-tracking-service/internal/middleware"
 	authController "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/controller"
 	authRepository "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/repository"
 	authService "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/service"
 	httpServer "github.com/audricimanuel/laundry-routine-tracking-service/internal/server/http"
+	"github.com/audricimanuel/laundry-routine-tracking-service/internal/tools"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
@@ -38,11 +40,14 @@ func main() {
 		databaseCollection.PostgresDBSqlx.Close()
 	}()
 
+	// tools
+	smtpClient := tools.NewSMTPClient(cfg)
+
 	// repositories
 	authRepo := authRepository.NewAuthRepository(cfg, databaseCollection)
 
 	// services
-	authServ := authService.NewAuthService(cfg, authRepo)
+	authServ := authService.NewAuthService(cfg, smtpClient, authRepo)
 
 	// controllers
 	authCtrl := authController.NewAuthController(authServ)
@@ -53,6 +58,10 @@ func main() {
 	// registering router
 	router := httpServer.RegisterRouter(
 		cfg,
+
+		// register additional middlewares here
+		middleware.NewAuthMiddleware(cfg, authRepo),
+
 		// register controllers in here
 		authCtrl,
 	)

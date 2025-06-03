@@ -18,6 +18,7 @@ func ViperBind() {
 	viper.BindEnv("HOST_WRITE_TIMEOUT")
 	viper.BindEnv("HOST_READ_TIMEOUT")
 	viper.BindEnv("HOST_IDLE_TIMEOUT")
+	viper.BindEnv("FE_BASE_URL")
 
 	// Binding Database
 	viper.BindEnv("POSTGRES_DB_HOST")
@@ -27,4 +28,11 @@ func ViperBind() {
 	viper.BindEnv("POSTGRES_DB_PORT")
 	viper.BindEnv("POSTGRES_SSL_MODE")
 	viper.BindEnv("POSTGRES_TZ")
+
+	// Binding SMTP
+	viper.BindEnv("SMTP_HOST")
+	viper.BindEnv("SMTP_HOST_USER")
+	viper.BindEnv("SMTP_HOST_PASSWORD")
+	viper.BindEnv("SMTP_PORT")
+	viper.BindEnv("CS_EMAIL_ADDRESS")
 }

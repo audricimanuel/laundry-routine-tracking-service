@@ -14,6 +14,8 @@ import (
 
 func RegisterRouter(
 	cfg config.Config,
+	// additional middlewares
+	authMiddleware middleware.AuthMiddleware,
 	// register new controllers here
 	authController authController.AuthController,
 ) *gin.Engine {
@@ -21,7 +23,7 @@ func RegisterRouter(
 
 	mid := middleware.InitMiddleware(cfg)
 
-	setMiddlewareGlobal(mid, r)
+	setMiddlewareGlobal(cfg, mid, r)
 
 	// Swagger
 	r.Handle("GET", "/docs/*any", mid.BasicAuth(cfg.SwaggerUsername, cfg.SwaggerPassword), ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -36,31 +38,33 @@ func RegisterRouter(
 
 	api := r.Group("/api")
 	{
-		// api/v1/auth
+		// /api/v1/auth
 		authApi := api.Group("/v1/auth")
 		{
-			// api/v1/auth/login
+			// /api/v1/auth/login
 			authApi.POST("/login", authController.Login)
-			// api/v1/auth/signup
+			// /api/v1/auth/signup
 			authApi.POST("/signup", authController.SignUp)
-			// api/v1/auth/verify-email
-			authApi.POST("/verify-email", authController.VerifyEmail)
-			// api/v1/auth/forgot-password
+			// /api/v1/auth/verify-email
+			authApi.POST("/verify-email", authMiddleware.ValidateJWT(), authController.VerifyEmail)
+			// /api/v1/auth/forgot-password
 			authApi.POST("/forgot-password", authController.ForgotPassword)
+			// /api/v1/auth/refresh
+			authApi.POST("/refresh", authMiddleware.RefreshJWT())
 		}
 	}
 
 	return r
 }
 
-func setMiddlewareGlobal(mid middleware.GoMiddleware, r *gin.Engine) {
+func setMiddlewareGlobal(cfg config.Config, mid middleware.GoMiddleware, r *gin.Engine) {
 	// Logger
 	r.Use(mid.LogRequest())
 
 	// Cors
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://*", "http://*"},
-		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch},
+		AllowOrigins:     []string{cfg.Host.FEBaseUrl},
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch, http.MethodOptions},
 		AllowCredentials: false,
 		AllowHeaders:     []string{"*"},
 		MaxAge:           300,

@@ -1,11 +1,13 @@
 package utils
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"io"
+	"math/big"
 	"net/url"
 	"strconv"
 	"strings"
@@ -13,7 +15,7 @@ import (
 )
 
 func TimeNow() time.Time {
-	return time.Now()
+	return time.Now().UTC()
 }
 
 func ConvertStrToInt(number string, defaultResult int) int {
@@ -96,4 +98,18 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func GenerateOTP(length int) (string, error) {
+	const digits = "0123456789"
+	otp := make([]byte, length)
+
+	for i := range otp {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(digits))))
+		if err != nil {
+			return "", err
+		}
+		otp[i] = digits[n.Int64()]
+	}
+	return string(otp), nil
 }

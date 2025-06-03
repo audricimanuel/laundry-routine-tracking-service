@@ -8,3 +8,8 @@ const (
 	ROLE_USER        Role = 1
 	ROLE_GUEST       Role = 0
 )
+
+const (
+	USER_DATA  = "user-data"
+	USER_TOKEN = "user-token"
+)
