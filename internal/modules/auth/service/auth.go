@@ -71,7 +71,7 @@ func (a *AuthServiceImpl) LoginUser(ctx context.Context, request model.UserLogin
 
 func (a *AuthServiceImpl) generateJWT(userData model.UserInfoResponse) (string, error) {
 	jwtSecret := []byte(a.cfg.JWTSecret)
-	token := userData.ToJWT()
+	token := userData.ToJWT(a.cfg)
 
 	return token.SignedString(jwtSecret)
 }

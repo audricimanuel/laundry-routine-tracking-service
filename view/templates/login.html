@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/static/login.js"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center h-screen">
+<form id="signin-form" class="bg-white p-8 rounded-lg shadow-md w-96 space-y-4">
+  <h2 class="text-2xl font-bold text-center">Welcome Back</h2>
+  <p class="text-center text-gray-500">Sign in to your laundry tracking account</p>
+
+  <div>
+    <label class="block mb-1 text-sm font-medium text-gray-700">Email</label>
+    <input type="email" name="email" required class="w-full border rounded px-3 py-2" placeholder="your@email.com" />
+  </div>
+
+  <div>
+    <label class="block mb-1 text-sm font-medium text-gray-700">Password</label>
+    <input type="password" name="password" required class="w-full border rounded px-3 py-2" placeholder="Enter your password" />
+  </div>
+
+  <button type="submit" class="w-full bg-gray-900 text-white py-2 rounded hover:bg-gray-800">Sign In</button>
+
+  <div class="text-sm text-center mt-2">
+    <a href="/forgot-password" class="text-blue-500">Forgot your password?</a>
+  </div>
+
+  <div class="text-sm text-center">
+    Don’t have an account? <a href="/signup" class="text-blue-500">Sign up</a>
+  </div>
+</form>
+</body>
+</html>

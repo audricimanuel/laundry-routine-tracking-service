@@ -10,6 +10,9 @@ import (
 	authController "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/controller"
 	authRepository "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/repository"
 	authService "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/service"
+	laundryController "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/laundry/controller"
+	laundryRepository "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/laundry/repository"
+	laundryService "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/laundry/service"
 	httpServer "github.com/audricimanuel/laundry-routine-tracking-service/internal/server/http"
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/tools"
 	"github.com/sirupsen/logrus"
@@ -45,12 +48,15 @@ func main() {
 
 	// repositories
 	authRepo := authRepository.NewAuthRepository(cfg, databaseCollection)
+	laundryRepo := laundryRepository.NewLaundryRepository(databaseCollection)
 
 	// services
 	authServ := authService.NewAuthService(cfg, smtpClient, authRepo)
+	laundrySvc := laundryService.NewLaundryService(laundryRepo)
 
 	// controllers
-	authCtrl := authController.NewAuthController(authServ)
+	authCtrl := authController.NewAuthController(cfg, authServ)
+	laundryCtrl := laundryController.NewLaundryController(laundrySvc)
 
 	// set swagger info
 	setSwaggerInfo()
@@ -64,6 +70,7 @@ func main() {
 
 		// register controllers in here
 		authCtrl,
+		laundryCtrl,
 	)
 
 	// running server

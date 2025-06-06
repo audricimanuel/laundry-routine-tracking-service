@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/audricimanuel/laundry-routine-tracking-service/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 )
@@ -50,17 +51,22 @@ type (
 	}
 )
 
-func (u *UserInfoResponse) ToJWT() *jwt.Token {
+func (u *UserInfoResponse) ToJWT(cfg config.Config) *jwt.Token {
+	expireDuration := time.Duration(cfg.JWTExpirationDuration) * time.Hour
 	claims := UserClaims{
 		UserId: u.Id,
 		Email:  u.Email,
 		Role:   u.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)), // Token expires in 24 hours
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expireDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "laundry-routine-tracking-service",
 		},
 	}
 
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+}
+
+func (u *UserClaims) IsExpired() bool {
+	return u.ExpiresAt.Time.Before(time.Now())
 }

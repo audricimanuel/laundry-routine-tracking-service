@@ -11,6 +11,7 @@ import (
 	"github.com/audricimanuel/laundry-routine-tracking-service/utils/httputils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -19,6 +20,8 @@ type (
 	AuthMiddleware interface {
 		ValidateJWT() gin.HandlerFunc
 		RefreshJWT() gin.HandlerFunc
+		ValidateJWTFromCookie() gin.HandlerFunc
+		ValidateGetLoginPage() gin.HandlerFunc
 	}
 
 	AuthMiddlewareImpl struct {
@@ -58,9 +61,37 @@ func (a *AuthMiddlewareImpl) ValidateJWT() gin.HandlerFunc {
 			return
 		}
 
-		if claims.ExpiresAt.Time.Before(time.Now()) {
+		if claims.IsExpired() {
 			httputils.SetHttpResponse(c, nil, errorutils.ErrorInvalidToken.CustomMessage("expired token"), nil)
 			c.Abort()
+			return
+		}
+
+		c.Set(constants.USER_DATA, *claims)
+		c.Set(constants.USER_TOKEN, tokenString)
+
+		c.Next()
+	}
+}
+
+func (a *AuthMiddlewareImpl) ValidateJWTFromCookie() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cookie, err := c.Request.Cookie(constants.COOKIE_AUTH_TOKEN)
+		if err != nil || cookie.Value == "" {
+			c.Redirect(http.StatusTemporaryRedirect, "/login")
+			return
+		}
+
+		tokenString := cookie.Value
+
+		claims, err := a.validateToken(tokenString)
+		if err != nil {
+			c.Redirect(http.StatusTemporaryRedirect, "/login")
+			return
+		}
+
+		if claims.IsExpired() {
+			c.Redirect(http.StatusTemporaryRedirect, "/login")
 			return
 		}
 
@@ -99,13 +130,41 @@ func (a *AuthMiddlewareImpl) RefreshJWT() gin.HandlerFunc {
 			"token": tokenString,
 		}
 
-		if claims.ExpiresAt.Time.Before(time.Now()) {
-			claims.ExpiresAt.Time = utils.TimeNow().Add(24 * time.Hour)
+		if claims.IsExpired() {
+			claims.ExpiresAt.Time = utils.TimeNow().Add(time.Duration(a.cfg.JWTExpirationDuration) * time.Hour)
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 			data["token"], _ = token.SignedString([]byte(a.cfg.JWTSecret))
 		}
 
 		httputils.SetHttpResponse(c, data, nil, nil)
+	}
+}
+
+func (a *AuthMiddlewareImpl) ValidateGetLoginPage() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cookie, err := c.Request.Cookie(constants.COOKIE_AUTH_TOKEN)
+		if err != nil || cookie.Value == "" {
+			c.Next()
+			return
+		}
+
+		tokenString := cookie.Value
+
+		claims, err := a.validateToken(tokenString)
+		if err != nil {
+			c.Next()
+			return
+		}
+
+		if claims.IsExpired() {
+			c.Next()
+			return
+		}
+
+		//c.Set(constants.USER_DATA, *claims)
+		//c.Set(constants.USER_TOKEN, tokenString)
+
+		c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 }
 

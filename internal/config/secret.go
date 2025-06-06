@@ -11,6 +11,7 @@ func ViperBind() {
 
 	// Binding JWT
 	viper.BindEnv("JWT_SECRET")
+	viper.BindEnv("JWT_EXPIRATION_DURATION")
 
 	// Binding host
 	viper.BindEnv("HOST_ADDRESS")

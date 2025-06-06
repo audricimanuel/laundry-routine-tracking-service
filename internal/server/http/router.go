@@ -5,11 +5,14 @@ import (
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/config"
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/middleware"
 	authController "github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/auth/controller"
+	"github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/laundry/controller"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"html/template"
 	"net/http"
+	"os"
 )
 
 func RegisterRouter(
@@ -18,8 +21,11 @@ func RegisterRouter(
 	authMiddleware middleware.AuthMiddleware,
 	// register new controllers here
 	authController authController.AuthController,
+	laundryController controller.LaundryController,
 ) *gin.Engine {
 	r := gin.Default()
+
+	setHTMLTemplate(r)
 
 	mid := middleware.InitMiddleware(cfg)
 
@@ -35,6 +41,15 @@ func RegisterRouter(
 		staticText := fmt.Sprintf("hello world: %s", cfg.Env)
 		ctx.JSON(http.StatusOK, gin.H{"message": staticText})
 	})
+
+	// route of FE
+	viewApi := r.Group("")
+	{
+		// /login
+		viewApi.GET("/login", authMiddleware.ValidateGetLoginPage(), authController.GetLoginPage)
+
+		viewApi.GET("/", authMiddleware.ValidateJWTFromCookie(), laundryController.GetLaundryList)
+	}
 
 	api := r.Group("/api")
 	{
@@ -72,4 +87,16 @@ func setMiddlewareGlobal(cfg config.Config, mid middleware.GoMiddleware, r *gin.
 
 	// Recovery
 	r.Use(mid.RecoverPanic())
+}
+
+func setHTMLTemplate(r *gin.Engine) {
+	var templates *template.Template
+
+	r.Static("/static/", "./view/static")
+
+	dir, _ := os.Getwd()
+	fmt.Println("Current working directory:", dir)
+	templates = template.Must(template.ParseGlob(dir + "/view/templates/*.html"))
+
+	r.SetHTMLTemplate(templates)
 }
