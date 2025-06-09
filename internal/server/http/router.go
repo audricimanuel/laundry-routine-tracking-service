@@ -67,6 +67,12 @@ func RegisterRouter(
 			// /api/v1/auth/refresh
 			authApi.POST("/refresh", authMiddleware.RefreshJWT())
 		}
+
+		// /api/v1/laundry
+		laundryApi := api.Group("/v1/laundry")
+		{
+			laundryApi.POST("/", authMiddleware.ValidateJWT(), laundryController.AddLaundry)
+		}
 	}
 
 	return r

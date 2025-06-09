@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/audricimanuel/errorutils"
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/model"
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/laundry/service"
 	"github.com/audricimanuel/laundry-routine-tracking-service/utils"
@@ -15,6 +16,7 @@ import (
 type (
 	LaundryController interface {
 		GetLaundryList(ctx *gin.Context)
+		AddLaundry(ctx *gin.Context)
 	}
 
 	LaundryControllerImpl struct {
@@ -42,7 +44,6 @@ func (l *LaundryControllerImpl) GetLaundryList(ctx *gin.Context) {
 		CategoryName:    ctx.Query("category_name"),
 		LaundryDateFrom: nil,
 		LaundryDateTo:   nil,
-		DetailNumber:    strings.TrimSpace(ctx.Query("detail_number")),
 		Page:            utils.ConvertStrToInt(strings.TrimSpace(ctx.Query("page")), 1),
 	}
 
@@ -66,15 +67,26 @@ func (l *LaundryControllerImpl) GetLaundryList(ctx *gin.Context) {
 	if err != nil {
 		dataHtml["error"] = err.Error()
 	}
-	result = append(result, model.LaundryResponse{
-		Id:                "test123",
-		DetailNumber:      "25060700001",
-		Title:             "Laundry Rukita",
-		LaundryDateString: "2025-06-07",
-		TotalItems:        5,
-		StatusLabel:       "Pending",
-	})
 	dataHtml["data"] = result
 
 	ctx.HTML(http.StatusOK, "dashboard.html", dataHtml)
+}
+
+func (l *LaundryControllerImpl) AddLaundry(ctx *gin.Context) {
+	userDataCtx, ok := ctx.Get(constants.USER_DATA)
+	if !ok {
+		httputils.InvalidateCookie(ctx, constants.COOKIE_AUTH_TOKEN)
+		ctx.Redirect(http.StatusTemporaryRedirect, "/login")
+		return
+	}
+
+	var request model.AddLaundryRequest
+	if err := errorutils.ValidatePayload(ctx.Request, &request); err != nil {
+		httputils.SetHttpResponse(ctx, nil, err, nil)
+		return
+	}
+
+	userData := userDataCtx.(model.UserClaims)
+
+	httputils.SetHttpResponse(ctx, nil, l.laundryService.AddLaundry(ctx, userData.UserId, request), nil)
 }
