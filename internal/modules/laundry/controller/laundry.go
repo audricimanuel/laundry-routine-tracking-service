@@ -5,6 +5,7 @@ import (
 	"github.com/audricimanuel/laundry-routine-tracking-service/internal/modules/laundry/service"
 	"github.com/audricimanuel/laundry-routine-tracking-service/utils"
 	"github.com/audricimanuel/laundry-routine-tracking-service/utils/constants"
+	"github.com/audricimanuel/laundry-routine-tracking-service/utils/httputils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -28,7 +29,13 @@ func NewLaundryController(laundryService service.LaundryService) LaundryControll
 }
 
 func (l *LaundryControllerImpl) GetLaundryList(ctx *gin.Context) {
-	userDataCtx, _ := ctx.Get(constants.USER_DATA)
+	userDataCtx, ok := ctx.Get(constants.USER_DATA)
+	if !ok {
+		httputils.InvalidateCookie(ctx, constants.COOKIE_AUTH_TOKEN)
+		ctx.Redirect(http.StatusTemporaryRedirect, "/login")
+		return
+	}
+
 	userData := userDataCtx.(model.UserClaims)
 
 	queryParam := model.LaundryQueryParam{

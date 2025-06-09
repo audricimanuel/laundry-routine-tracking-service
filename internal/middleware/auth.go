@@ -11,6 +11,7 @@ import (
 	"github.com/audricimanuel/laundry-routine-tracking-service/utils/httputils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 	"time"
@@ -77,7 +78,7 @@ func (a *AuthMiddlewareImpl) ValidateJWT() gin.HandlerFunc {
 func (a *AuthMiddlewareImpl) ValidateJWTFromCookie() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookie, err := c.Request.Cookie(constants.COOKIE_AUTH_TOKEN)
-		if err != nil || cookie.Value == "" {
+		if err != nil || cookie == nil || cookie.Value == "" {
 			c.Redirect(http.StatusTemporaryRedirect, "/login")
 			return
 		}
@@ -86,11 +87,13 @@ func (a *AuthMiddlewareImpl) ValidateJWTFromCookie() gin.HandlerFunc {
 
 		claims, err := a.validateToken(tokenString)
 		if err != nil {
+			httputils.InvalidateCookie(c, constants.COOKIE_AUTH_TOKEN)
 			c.Redirect(http.StatusTemporaryRedirect, "/login")
 			return
 		}
 
 		if claims.IsExpired() {
+			httputils.InvalidateCookie(c, constants.COOKIE_AUTH_TOKEN)
 			c.Redirect(http.StatusTemporaryRedirect, "/login")
 			return
 		}
@@ -152,11 +155,13 @@ func (a *AuthMiddlewareImpl) ValidateGetLoginPage() gin.HandlerFunc {
 
 		claims, err := a.validateToken(tokenString)
 		if err != nil {
+			httputils.InvalidateCookie(c, constants.COOKIE_AUTH_TOKEN)
 			c.Next()
 			return
 		}
 
 		if claims.IsExpired() {
+			httputils.InvalidateCookie(c, constants.COOKIE_AUTH_TOKEN)
 			c.Next()
 			return
 		}
@@ -181,6 +186,7 @@ func (a *AuthMiddlewareImpl) validateToken(jwtString string) (*model.UserClaims,
 
 	claims, ok := token.Claims.(*model.UserClaims)
 	if !ok || !token.Valid {
+		logrus.Error("invalid token", ok, token.Valid)
 		return nil, errorutils.ErrorInvalidToken.CustomMessage("invalid claims")
 	}
 
